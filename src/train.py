@@ -15,8 +15,6 @@ import os
 from torch.utils.data import DataLoader
 from torch.utils.data import Subset
 
-import wandb
-
 
 def train(seed, testset_ratio, validset_ratio, data_path, results_path, early_stopping_patience, device, learningrate,
           weight_decay, n_updates, use_wandb, print_train_stats_at, print_stats_at, plot_at, validate_at, batchsize,
@@ -32,16 +30,21 @@ def train(seed, testset_ratio, validset_ratio, data_path, results_path, early_st
         device = torch.device(device)
 
     if use_wandb:
-        wandb.login()
-        wandb.init(project="image_inpainting", config={
-            "learning_rate": learningrate,
-            "weight_decay": weight_decay,
-            "n_updates": n_updates,
-            "batch_size": batchsize,
-            "validation_ratio": validset_ratio,
-            "testset_ratio": testset_ratio,
-            "early_stopping_patience": early_stopping_patience,
-        })
+        try:
+            import wandb
+            wandb.login()
+            wandb.init(project="image_inpainting", config={
+                "learning_rate": learningrate,
+                "weight_decay": weight_decay,
+                "n_updates": n_updates,
+                "batch_size": batchsize,
+                "validation_ratio": validset_ratio,
+                "testset_ratio": testset_ratio,
+                "early_stopping_patience": early_stopping_patience,
+            })
+        except:
+            use_wandb = False
+            print("Warning: wandb not installed, continuing without it")
 
     # Prepare a path to plot to
     plotpath = os.path.join(results_path, "plots")

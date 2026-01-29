@@ -7,14 +7,14 @@
 import torch
 import numpy as np
 import os
-from matplotlib import pyplot as plt
 
 from architecture import MyModel
 
 
 def plot(inputs, targets, predictions, path, update):
     """Plotting the inputs, targets and predictions to file `path`"""
-
+    from matplotlib import pyplot as plt
+    
     os.makedirs(path, exist_ok=True)
     fig, axes = plt.subplots(ncols=3, figsize=(15, 5))
 
@@ -35,7 +35,8 @@ def plot(inputs, targets, predictions, path, update):
 
 def testset_plot(input_array, output_array, path, index):
     """Plotting the inputs, targets and predictions to file `path` for testset (no targets available)"""
-
+    from matplotlib import pyplot as plt
+    
     os.makedirs(path, exist_ok=True)
     fig, axes = plt.subplots(ncols=2, figsize=(10, 5))
 
