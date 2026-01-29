@@ -20,17 +20,17 @@ if __name__ == '__main__':
     config_dict['results_path'] = os.path.join("results")
     config_dict['data_path'] = os.path.join("data", "dataset")
     config_dict['device'] = "cuda"
-    config_dict['learningrate'] = 1e-3
+    config_dict['learningrate'] = 5e-4
     config_dict['weight_decay'] = 1e-5 # default is 0
-    config_dict['n_updates'] = 50000
-    config_dict['batchsize'] = 32
-    config_dict['early_stopping_patience'] = 3
+    config_dict['n_updates'] = 100000
+    config_dict['batchsize'] = 16
+    config_dict['early_stopping_patience'] = 10
     config_dict['use_wandb'] = False
 
     config_dict['print_train_stats_at'] = 10
     config_dict['print_stats_at'] = 100
-    config_dict['plot_at'] = 100
-    config_dict['validate_at'] = 100
+    config_dict['plot_at'] = 200
+    config_dict['validate_at'] = 200
 
     network_config = {
         'n_in_channels': 4
