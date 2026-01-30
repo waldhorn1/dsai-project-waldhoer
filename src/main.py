@@ -20,10 +20,10 @@ if __name__ == '__main__':
     config_dict['results_path'] = os.path.join("results")
     config_dict['data_path'] = os.path.join("data", "dataset")
     config_dict['device'] = "cuda"
-    config_dict['learningrate'] = 3e-4
+    config_dict['learningrate'] = 1e-3
     config_dict['weight_decay'] = 1e-5 # default is 0
     config_dict['n_updates'] = 10000
-    config_dict['batchsize'] = 64
+    config_dict['batchsize'] = 32
     config_dict['early_stopping_patience'] = 10
     config_dict['use_wandb'] = False
 
