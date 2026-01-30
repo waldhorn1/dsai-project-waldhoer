@@ -19,18 +19,18 @@ if __name__ == '__main__':
     config_dict['validset_ratio'] = 0.1
     config_dict['results_path'] = os.path.join("results")
     config_dict['data_path'] = os.path.join("data", "dataset")
-    config_dict['device'] = "cpu"
-    config_dict['learningrate'] = 2e-4
-    config_dict['weight_decay'] = 5e-6 # default is 0
-    config_dict['n_updates'] = 150000
-    config_dict['batchsize'] = 8
-    config_dict['early_stopping_patience'] = 15
+    config_dict['device'] = "cuda"
+    config_dict['learningrate'] = 1e-3
+    config_dict['weight_decay'] = 1e-5 # default is 0
+    config_dict['n_updates'] = 100000
+    config_dict['batchsize'] = 16
+    config_dict['early_stopping_patience'] = 25
     config_dict['use_wandb'] = False
 
-    config_dict['print_train_stats_at'] = 10
+    config_dict['print_train_stats_at'] = 50
     config_dict['print_stats_at'] = 100
     config_dict['plot_at'] = 500
-    config_dict['validate_at'] = 150
+    config_dict['validate_at'] = 500
 
     network_config = {
         'n_in_channels': 4
@@ -42,8 +42,8 @@ if __name__ == '__main__':
     
     testset_path = os.path.join("data", "challenge_testset.npz")
     state_dict_path = os.path.join(config_dict['results_path'], "best_model.pt")
-    save_path = os.path.join(config_dict['results_path'], "testset", "my_submission_name.npz")
+    save_path = os.path.join(config_dict['results_path'], "testset", "einmal_abkoppeln_gtime.npz")
     plot_path = os.path.join(config_dict['results_path'], "testset", "plots")
 
     # Comment out, if predictions are required
-    create_predictions(config_dict['network_config'], state_dict_path, testset_path, config_dict['device'], save_path, plot_path, plot_at=20)
+    create_predictions(config_dict['network_config'], state_dict_path, testset_path, config_dict['device'], save_path, plot_path, plot_at=50)
