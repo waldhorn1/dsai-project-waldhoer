@@ -23,7 +23,7 @@ if __name__ == '__main__':
     config_dict['learningrate'] = 1e-3
     config_dict['weight_decay'] = 1e-5 # default is 0
     config_dict['n_updates'] = 100000
-    config_dict['batchsize'] = 16
+    config_dict['batchsize'] = 128
     config_dict['early_stopping_patience'] = 25
     config_dict['use_wandb'] = False
 
