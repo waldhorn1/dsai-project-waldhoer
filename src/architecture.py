@@ -5,60 +5,68 @@
 """
 
 import torch
+import torch.nn as nn
 
-class MyModel(torch.nn.Module):
-    def __init__(self, n_in_channels: int):
+class DoubleConv(nn.Module):
+    """(convolution => [BN] => ReLU) * 2"""
+    def __init__(self, in_channels, out_channels):
         super().__init__()
+        self.double_conv = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
 
-        # Encoder path
-        self.cnn1 = torch.nn.Conv2d(in_channels=n_in_channels, out_channels=32, kernel_size=3, padding=1)
-        self.bn1 = torch.nn.BatchNorm2d(32)
-        self.relu1 = torch.nn.ReLU()
-        
-        self.cnn2 = torch.nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
-        self.bn2 = torch.nn.BatchNorm2d(64)
-        self.relu2 = torch.nn.ReLU()
-        
-        # Middle layers
-        self.cnn3 = torch.nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1)
-        self.bn3 = torch.nn.BatchNorm2d(128)
-        self.relu3 = torch.nn.ReLU()
-        
-        self.cnn4 = torch.nn.Conv2d(in_channels=128, out_channels=64, kernel_size=3, padding=1)
-        self.bn4 = torch.nn.BatchNorm2d(64)
-        self.relu4 = torch.nn.ReLU()
-        
-        # Decoder path
-        self.cnn5 = torch.nn.Conv2d(in_channels=64, out_channels=32, kernel_size=3, padding=1)
-        self.bn5 = torch.nn.BatchNorm2d(32)
-        self.relu5 = torch.nn.ReLU()
-        
-        self.cnn6 = torch.nn.Conv2d(in_channels=32, out_channels=3, kernel_size=3, padding=1)
-    
     def forward(self, x):
-        # Skip connection for later use
-        x_skip = x
+        return self.double_conv(x)
+
+class MyModel(nn.Module):
+    def __init__(self, n_in_channels: int):
+        super(MyModel, self).__init__()
         
-        x = self.cnn1(x)
-        x = self.bn1(x)
-        x = self.relu1(x)
+        # Encoder
+        self.inc = DoubleConv(n_in_channels, 64)
+        self.down1 = nn.Sequential(nn.MaxPool2d(2), DoubleConv(64, 128))
+        self.down2 = nn.Sequential(nn.MaxPool2d(2), DoubleConv(128, 256))
         
-        x = self.cnn2(x)
-        x = self.bn2(x)
-        x = self.relu2(x)
+        # Bottleneck
+        self.bot = DoubleConv(256, 512)
         
-        x = self.cnn3(x)
-        x = self.bn3(x)
-        x = self.relu3(x)
+        # Decoder
+        self.up1 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
+        self.conv_up1 = DoubleConv(384, 256) # 384 = 256 (von up1) + 128 (von skip connection)
         
-        x = self.cnn4(x)
-        x = self.bn4(x)
-        x = self.relu4(x)
+        self.up2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
+        self.conv_up2 = DoubleConv(192, 128) # 192 = 128 (von up2) + 64 (von skip connection)
+
+        self.outc = nn.Conv2d(128, 3, kernel_size=1)
+
+    def forward(self, x):
+        # x shape: [Batch, 4, 100, 100]
         
-        x = self.cnn5(x)
-        x = self.bn5(x)
-        x = self.relu5(x)
+        x1 = self.inc(x)        # -> [B, 64, 100, 100]
+        x2 = self.down1[0](x1)  # MaxPool
+        x2 = self.down1[1](x2)  # DoubleConv -> [B, 128, 50, 50]
         
-        x = self.cnn6(x)
+        x3 = self.down2[0](x2)  # MaxPool
+        x3 = self.down2[1](x3)  # DoubleConv -> [B, 256, 25, 25]
         
-        return x
+        x4 = self.bot(x3)       # -> [B, 512, 25, 25]
+        
+        # Up 1
+        x = self.up1(x4)        # -> [B, 256, 50, 50]
+        x = torch.cat([x2, x], dim=1) # Skip Connection concatenation
+        x = self.conv_up1(x)    # -> [B, 256, 50, 50]
+        
+        # Up 2
+        x = self.up2(x)         # -> [B, 128, 100, 100]
+        x = torch.cat([x1, x], dim=1) # Skip Connection concatenation
+        x = self.conv_up2(x)    # -> [B, 128, 100, 100]
+        
+        logits = self.outc(x)   # -> [B, 3, 100, 100]
+        
+        # WICHTIG: Sigmoid zwingt den Output zwischen 0.0 und 1.0 (Pixelwerte)
+        return torch.sigmoid(logits)
